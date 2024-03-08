@@ -20,6 +20,7 @@ public class MessageController {
 
     @PostMapping("/message")
     public String createMessage(@RequestBody MessageRequest messageRequest) {
+        //créer une methode convert dans le dto
         Message message = new Message();
         message.setMessage(messageRequest.getMessage());
         //TODO mettre le user courant

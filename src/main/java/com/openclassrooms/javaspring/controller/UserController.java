@@ -17,13 +17,19 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @GetMapping("/user/{id}")
-    public ResponseEntity<User> getUser(@PathVariable("id") final String string_id) {
-    	System.out.println("ola");
+/*    @GetMapping("/test/{id}")
+    public ResponseEntity<User> getUserTest(@PathVariable("id") final String string_id) {
     	long id = Long.parseLong(string_id);
-        Optional<User> user = userService.getUserById(id);
+        Optional<User> user = userService.getUserById2(id);
         return user.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+*/
+    @GetMapping("/user/{id}")
+    public User getUser(@PathVariable("id") final String string_id) {
+        long id = Long.parseLong(string_id);
+        User user = userService.getUserById(id);
+        return user;
     }
 
 }
