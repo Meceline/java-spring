@@ -1,6 +1,7 @@
 package com.openclassrooms.javaspring.controller;
 
 import com.openclassrooms.javaspring.dto.MessageRequest;
+import com.openclassrooms.javaspring.dto.MessageResponse;
 import com.openclassrooms.javaspring.model.Message;
 import com.openclassrooms.javaspring.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,7 @@ public class MessageController {
     private MessageService messageService;
 
     @PostMapping("/message")
-    public String createMessage(@RequestBody MessageRequest messageRequest) {
+    public MessageResponse createMessage(@RequestBody MessageRequest messageRequest) {
         //créer une methode convert dans le dto
         Message message = new Message();
         message.setMessage(messageRequest.getMessage());
@@ -29,7 +30,10 @@ public class MessageController {
         message.setUpdated_at(new Date());
 
         messageService.createMessage(message);
-        return "ola";
+
+        MessageResponse response = new MessageResponse();
+        response.setMessage("Message send with success");
+        return response;
     }
 }
 
