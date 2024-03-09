@@ -19,4 +19,8 @@ public class RentalService {
     public Iterable<Rental> getRentals(){
         return rentalRepository.findAll();
     }
+
+    public void createRental(Rental r){
+        rentalRepository.save(r);
+    }
 }

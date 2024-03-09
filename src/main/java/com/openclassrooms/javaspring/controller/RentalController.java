@@ -1,15 +1,15 @@
 package com.openclassrooms.javaspring.controller;
 
+import com.openclassrooms.javaspring.dto.MessageResponse;
 import com.openclassrooms.javaspring.dto.RentalDto;
 import com.openclassrooms.javaspring.model.Rental;
+import com.openclassrooms.javaspring.model.User;
 import com.openclassrooms.javaspring.service.RentalService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,5 +45,28 @@ public class RentalController {
          }
         return list;
     }
+
+    @PostMapping("/rental")
+    public MessageResponse createRetal(@RequestBody RentalDto rentalDto) {
+        //TODO Récupérer le user courant  - session ?
+        Rental rental = new Rental();
+        rental.setName(rentalDto.getName());
+        rental.setSurface(rentalDto.getSurface());
+        rental.setPrice(rentalDto.getPrice());
+        rental.setPicture(rentalDto.getPicture());
+        rental.setDescription(rentalDto.getDescription());
+        rental.setCreated_at(new Date());
+        rental.setUpdated_at(new Date());
+User u = new User();
+u.setId((long) 1);
+rental.setOwner(u);
+
+        rentalService.createRental(rental);
+
+        MessageResponse response = new MessageResponse();
+        response.setMessage("Rental created !");
+        return response;
+    }
+
 
 }
