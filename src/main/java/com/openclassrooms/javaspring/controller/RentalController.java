@@ -69,4 +69,26 @@ rental.setOwner(u);
     }
 
 
+    @PutMapping("/rental/{id}")
+    public MessageResponse updateRental(@PathVariable("id") final String id_string, @RequestBody RentalDto rentalDto) {
+        Rental rental = new Rental();
+        long id = Long.parseLong(id_string);
+        rental.setId(id);
+        rental.setName(rentalDto.getName());
+        rental.setSurface(rentalDto.getSurface());
+        rental.setPrice(rentalDto.getPrice());
+        rental.setDescription(rentalDto.getDescription());
+        rental.setUpdated_at(new Date());
+
+        User u = new User();
+        u.setId((long) 1);
+        rental.setOwner(u);
+
+        rentalService.updateRental(rental);
+
+        MessageResponse response = new MessageResponse();
+        response.setMessage("Rental updated !");
+        return response;
+    }
+
 }

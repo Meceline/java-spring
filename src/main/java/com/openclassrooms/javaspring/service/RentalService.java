@@ -23,4 +23,8 @@ public class RentalService {
     public void createRental(Rental r){
         rentalRepository.save(r);
     }
+
+    public void updateRental(Rental rental){
+        rentalRepository.save((rental));
+    }
 }
