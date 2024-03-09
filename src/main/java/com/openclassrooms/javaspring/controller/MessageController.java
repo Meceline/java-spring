@@ -3,7 +3,10 @@ package com.openclassrooms.javaspring.controller;
 import com.openclassrooms.javaspring.dto.MessageRequest;
 import com.openclassrooms.javaspring.dto.MessageResponse;
 import com.openclassrooms.javaspring.model.Message;
+import com.openclassrooms.javaspring.model.Rental;
+import com.openclassrooms.javaspring.repository.RentalRepository;
 import com.openclassrooms.javaspring.service.MessageService;
+import com.openclassrooms.javaspring.service.RentalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,6 +21,8 @@ import java.util.Date;
 public class MessageController {
     @Autowired
     private MessageService messageService;
+@Autowired
+private RentalRepository rentalRepository;
 
     @PostMapping("/message")
     public MessageResponse createMessage(@RequestBody MessageRequest messageRequest) {
@@ -25,7 +30,8 @@ public class MessageController {
         Message message = new Message();
         message.setMessage(messageRequest.getMessage());
         //TODO mettre le user courant
-        //TODO créer un service pour récup le rental
+        Rental rental = rentalRepository.findById(messageRequest.getRental_id()).get();
+        message.setRental(rental);
         message.setCreated_at(new Date());
         message.setUpdated_at(new Date());
 

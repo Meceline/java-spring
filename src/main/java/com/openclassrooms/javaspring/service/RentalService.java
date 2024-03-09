@@ -5,12 +5,18 @@ import com.openclassrooms.javaspring.repository.RentalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class RentalService {
     @Autowired
     private RentalRepository rentalRepository;
 
-    public Rental getRental(Long id){
-        return rentalRepository.findById(id).get();
+    public Optional<Rental> getRental(Long id){
+        return rentalRepository.findById(id);
+    }
+
+    public Iterable<Rental> getRentals(){
+        return rentalRepository.findAll();
     }
 }
