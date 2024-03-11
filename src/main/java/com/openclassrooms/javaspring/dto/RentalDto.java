@@ -1,12 +1,15 @@
 package com.openclassrooms.javaspring.dto;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.Date;
 public class RentalDto {
     private Long id;
     private String name;
     private Integer surface;
     private Integer price;
-    private String picture;
+    private MultipartFile picture;
+    //private String picture;
     private String description;
     private Long owner_id;
     private Date created_at;
@@ -44,13 +47,20 @@ public class RentalDto {
         this.price = price;
     }
 
-    public String getPicture() {
+   public MultipartFile getPicture() {
         return picture;
     }
 
-    public void setPicture(String picture) {
+    public void setPicture(MultipartFile picture) {
         this.picture = picture;
     }
+  /* public String getPicture() {
+       return picture;
+   }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
+    }*/
 
     public String getDescription() {
         return description;
