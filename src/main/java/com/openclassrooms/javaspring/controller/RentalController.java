@@ -1,8 +1,6 @@
 package com.openclassrooms.javaspring.controller;
 
-import com.openclassrooms.javaspring.dto.FormData;
-import com.openclassrooms.javaspring.dto.MessageResponse;
-import com.openclassrooms.javaspring.dto.RentalDto;
+import com.openclassrooms.javaspring.dto.*;
 import com.openclassrooms.javaspring.model.Rental;
 import com.openclassrooms.javaspring.model.User;
 import com.openclassrooms.javaspring.service.FileUpload;
@@ -27,30 +25,40 @@ public class RentalController {
     private FileUpload fileUpload;
 
     @GetMapping("/rental/{id}")
-    public Optional<Rental> getRental(@PathVariable("id") final String id_string){
+    public RentalResponse getRental(@PathVariable("id") final String id_string){
         long id = Long.parseLong(id_string);
-        Optional<Rental> rental = rentalService.getRental(id);
-        return rental;
+        Rental r = rentalService.getRental(id).get();
+
+        RentalResponse rentalResponse = new RentalResponse();
+        rentalResponse.setId(r.getId());
+        rentalResponse.setName(r.getName());
+        rentalResponse.setSurface(r.getSurface());
+        rentalResponse.setPrice(r.getPrice());
+        rentalResponse.setPicture(r.getPicture());
+        rentalResponse.setDescription(r.getDescription());
+        rentalResponse.setOwner_id(r.getOwner().getId());
+        rentalResponse.setCreated_at(r.getCreated_at());
+        rentalResponse.setUpdated_at(r.getUpdated_at());
+
+        return rentalResponse;
     }
 
     @GetMapping("/rentals")
-    public Iterable<RentalDto> getRentals(){
+    public Iterable<RentalResponse> getRentals(){
          Iterable<Rental> rentals = rentalService.getRentals();
-         List<RentalDto> list = new ArrayList<RentalDto>();
+         List<RentalResponse> list = new ArrayList<RentalResponse>();
          for(Rental r: rentals){
-             RentalDto rentalDto = new RentalDto();
-             rentalDto.setId(r.getId());
-             rentalDto.setName(r.getName());
-             rentalDto.setSurface(r.getSurface());
-             rentalDto.setPrice(r.getPrice());
-             //convert rental to dto : string to MultipartFile
-
-             //rentalDto.setPicture(r.getPicture());
-             rentalDto.setDescription(r.getDescription());
-             rentalDto.setOwner_id(r.getOwner().getId());
-             rentalDto.setCreated_at(r.getCreated_at());
-             rentalDto.setUpdated_at(r.getUpdated_at());
-             list.add(rentalDto);
+             RentalResponse rentalResponse = new RentalResponse();
+             rentalResponse.setId(r.getId());
+             rentalResponse.setName(r.getName());
+             rentalResponse.setSurface(r.getSurface());
+             rentalResponse.setPrice(r.getPrice());
+             rentalResponse.setPicture(r.getPicture());
+             rentalResponse.setDescription(r.getDescription());
+             rentalResponse.setOwner_id(r.getOwner().getId());
+             rentalResponse.setCreated_at(r.getCreated_at());
+             rentalResponse.setUpdated_at(r.getUpdated_at());
+             list.add(rentalResponse);
          }
         return list;
     }
@@ -83,42 +91,6 @@ public class RentalController {
 
         return response;
     }
-
-
-/*    @PostMapping("/rental")
-    public MessageResponse createRental(
-            @RequestParam("name") String name,
-            @RequestParam("surface") int surface,
-            @RequestParam("price") int price,
-            @RequestParam("description") String description,
-            @RequestParam("picture") MultipartFile picture
-
-    ) {
-        System.out.print("O");
-        User u = new User();
-        u.setId((long) 1);
-
-        System.out.println("1");
-    *//*    String pictureUrl = fileUpload.uploadFile(picture);*//*
-
-        Rental rental = new Rental();
-        rental.setName(name);
-        rental.setSurface(surface);
-        rental.setPrice(price);
-        rental.setDescription(description);
-        rental.setCreated_at(new Date());
-        rental.setUpdated_at(new Date());
-        rental.setOwner(u);
-       *//* rental.setPicture(pictureUrl);*//*
-
-        System.out.println("2");
-        rentalService.createRental(rental);
-        System.out.println("3");
-        MessageResponse response = new MessageResponse();
-        response.setMessage("Rental created !");
-        return response;
-    }*/
-
 
     @PutMapping("/rental/{id}")
     public MessageResponse updateRental(@PathVariable("id") final String id_string, @RequestBody FormData formData) {

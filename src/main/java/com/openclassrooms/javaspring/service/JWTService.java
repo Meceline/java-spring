@@ -1,4 +1,4 @@
-/*package com.openclassrooms.javaspring.service;
+package com.openclassrooms.javaspring.service;
 
 import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.context.annotation.Bean;
@@ -10,9 +10,9 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;*/
+import java.time.temporal.ChronoUnit;
 
-/*@Service
+@Service
 public class JWTService {
 
     private JwtEncoder jwtEncoder;
@@ -32,4 +32,4 @@ public class JWTService {
         JwtEncoderParameters jwtEncoderParameters = JwtEncoderParameters.from(JwsHeader.with(MacAlgorithm.HS256).build(), claims);
         return this.jwtEncoder.encode(jwtEncoderParameters).getTokenValue();
     }
-}*/
+}
