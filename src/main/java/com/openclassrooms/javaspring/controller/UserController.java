@@ -1,6 +1,6 @@
 package com.openclassrooms.javaspring.controller;
 
-import com.openclassrooms.javaspring.dto.AuthSuccess;
+
 import com.openclassrooms.javaspring.dto.LoginRequest;
 import com.openclassrooms.javaspring.dto.RegisterRequest;
 import com.openclassrooms.javaspring.dto.UserResponse;
@@ -15,14 +15,16 @@ import com.openclassrooms.javaspring.service.JWTService;
 import com.openclassrooms.javaspring.service.UserService;
 
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
-
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.authentication.AuthenticationManager;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Map;
+
 
 @RestController
 @RequestMapping("/api")
@@ -53,26 +55,47 @@ public class UserController {
     }
 
     @GetMapping("/auth/me")
-    public ResponseEntity<UserDetails> getUser() {
+    public ResponseEntity<UserResponse> getUser() {
         // Obtenir l'objet Authentication du contexte de sécurité
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        // Vérifier si l'authentification est valide et que l'utilisateur est authentifié
+        // authentification valide et utilisateur authentifié
         if (authentication != null && authentication.isAuthenticated()) {
-            // Récupérer l'utilisateur à partir de l'objet Authentication
+            // Récupération de l'utilisateur à partir de l'objet Authentication
             Object principal = authentication.getPrincipal();
 
-            // Vérifier si le principal est un objet UserDetails
-            if (principal instanceof UserDetails) {
-                UserDetails userDetails = (UserDetails) principal;
+            if (principal instanceof Jwt) {
+                Jwt jwt = (Jwt) principal;
 
-                // Retourner les informations sur l'utilisateur
-                return ResponseEntity.ok(userDetails);
+                System.out.println(((Jwt) principal).getClaims());
+                System.out.println(jwt);
+
+                // extraction des claims de l'utilisateur depuis le token JWT
+                Long id = jwt.getClaim("id");
+                String email = jwt.getClaim("email");
+                String name = jwt.getClaim("name");
+                Long createdAtTimestamp = jwt.getClaim("created_at");
+                Long updatedAtTimestamp = jwt.getClaim("updated_at");
+
+                // Convertir les timestamps en objets Date
+                Date createdAt = new Date(createdAtTimestamp);
+                Date updatedAt = new Date(updatedAtTimestamp);
+
+
+                // Création de UserResponse
+                UserResponse user = new UserResponse();
+                user.setId(id);
+                user.setEmail(email);
+                user.setName(name);
+                user.setCreated_at(createdAt);
+                user.setUpdated_at(updatedAt);
+                // Retournez les informations sur l'utilisateur
+                return ResponseEntity.ok(user);
             } else {
-                // le principal n'est pas un objet UserDetails
+                // le principal n'est pas un objet Jwt
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
             }
         } else {
-            // l'authentification est invalide ou que l'utilisateur n'est pas authentifié
+            // l'authentification est invalide ou l'utilisateur n'est pas authentifié
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
     }
@@ -80,12 +103,12 @@ public class UserController {
     @PostMapping(value = "/auth/login")
     public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequest loginRequest) {
         User user = userService.login(loginRequest);
+        System.out.println(user.getEmail());
         if (user != null) {
             // Construire un objet Authentication à partir de l'ID de l'utilisateur
-            Authentication authentication = new UsernamePasswordAuthenticationToken(user.getId(),null );
+            Authentication authentication = new UsernamePasswordAuthenticationToken(user.getName(),null );
 
-            String token = jwtService.generateToken(authentication);
-            AuthSuccess authSuccess = new AuthSuccess("hjb");
+            String token = jwtService.generateToken(authentication, user);
             return ResponseEntity.ok(Collections.singletonMap("token", token));
 
         }else{
@@ -96,9 +119,8 @@ public class UserController {
 
 
     @PostMapping("/auth/register")
-    public AuthSuccess register(@RequestBody RegisterRequest registerRequest){
-        AuthSuccess authSuccess = new AuthSuccess("hjb");
-        return authSuccess;
+    public ResponseEntity<Map<String, String>> register(@RequestBody RegisterRequest registerRequest){
+        return ResponseEntity.ok(Collections.singletonMap("error", "error"));
     }
 
 }
