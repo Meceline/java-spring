@@ -1,5 +1,8 @@
 package com.openclassrooms.javaspring.service;
 
+import com.openclassrooms.javaspring.dto.LoginRequest;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.openclassrooms.javaspring.repository.UserRepository;
@@ -12,15 +15,28 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    public Optional<User> getUserById2(Long id){
-        return userRepository.findById(id);
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
+    private AuthenticationManager authenticationManager;
+
+    public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
+
+/*    public Optional<User> getUserById2(Long id){
+        return userRepository.findById(id);
+    }*/
 
     public User getUserById(Long id){
         return userRepository.findById(id).get();
     }
 
-    public User getUserByEmailAndPassword(String email, String password){return userRepository.findUserByEmailAndPassword(email, password);}
+      public User login(LoginRequest loginRequest) {
+          String password = passwordEncoder.encode(loginRequest.getPassword());
+          User user = userRepository.findUserByEmailAndPassword(loginRequest.getEmail(), loginRequest.getPassword());
+          return user;
+      }
 
-    public User getUserByEmailAndNameAndPassword(String email, String name, String password){return userRepository.findUserByEmailAndNameAndPassword(email, name, password);}
 }
