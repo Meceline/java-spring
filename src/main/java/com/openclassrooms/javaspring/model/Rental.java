@@ -25,7 +25,7 @@ public class Rental {
 
     private Integer price;
 
-    private String picture; //recup file, copy in folder, get url, save url
+    private String picture;
 
     private String description;
 

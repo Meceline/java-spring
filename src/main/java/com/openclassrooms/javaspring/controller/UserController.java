@@ -22,7 +22,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.authentication.AuthenticationManager;
 
 import java.util.Collections;
-import java.util.Date;
 import java.util.Map;
 
 
@@ -42,85 +41,92 @@ public class UserController {
     }
 
     @GetMapping("/user/{id}")
-    public UserResponse  getUserById(@PathVariable("id") final String string_id) {
-        long id = Long.parseLong(string_id);
-        User u = userService.getUserById(id);
-        UserResponse userResponse = new UserResponse();
-        userResponse.setId(u.getId());
-        userResponse.setName(u.getName());
-        userResponse.setEmail(u.getEmail());
-        userResponse.setCreated_at(u.getCreated_at());
-        userResponse.setUpdated_at(u.getUpdated_at());
-        return userResponse;
+    public ResponseEntity<UserResponse> getUserById(@PathVariable("id") final String string_id) {
+        try {
+            long id = Long.parseLong(string_id);
+            User u = userService.getUserById(id);
+            if (u != null) {
+                UserResponse userResponse = new UserResponse();
+                userResponse.setId(u.getId());
+                userResponse.setName(u.getName());
+                userResponse.setEmail(u.getEmail());
+                userResponse.setCreated_at(u.getCreated_at());
+                userResponse.setUpdated_at(u.getUpdated_at());
+                return ResponseEntity.ok(userResponse);
+            } else {
+                // id n'existe pas
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+        } catch (NumberFormatException e) {
+            // id n'est pas un nombre valide
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     @GetMapping("/auth/me")
     public ResponseEntity<UserResponse> getUser() {
-        // Obtenir l'objet Authentication du contexte de sécurité
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        // authentification valide et utilisateur authentifié
-        if (authentication != null && authentication.isAuthenticated()) {
-            // Récupération de l'utilisateur à partir de l'objet Authentication
-            Object principal = authentication.getPrincipal();
-
-            if (principal instanceof Jwt) {
-                Jwt jwt = (Jwt) principal;
-
-                System.out.println(((Jwt) principal).getClaims());
-                System.out.println(jwt);
-
-                // extraction des claims de l'utilisateur depuis le token JWT
-                Long id = jwt.getClaim("id");
-                String email = jwt.getClaim("email");
-                String name = jwt.getClaim("name");
-                Long createdAtTimestamp = jwt.getClaim("created_at");
-                Long updatedAtTimestamp = jwt.getClaim("updated_at");
-
-                // Convertir les timestamps en objets Date
-                Date createdAt = new Date(createdAtTimestamp);
-                Date updatedAt = new Date(updatedAtTimestamp);
-
-
-                // Création de UserResponse
-                UserResponse user = new UserResponse();
-                user.setId(id);
-                user.setEmail(email);
-                user.setName(name);
-                user.setCreated_at(createdAt);
-                user.setUpdated_at(updatedAt);
-                // Retournez les informations sur l'utilisateur
-                return ResponseEntity.ok(user);
+        try {
+            // Obtenir l'objet Authentication du contexte de sécurité
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            // Authentification valide et utilisateur authentifié
+            if (authentication != null && authentication.isAuthenticated()) {
+                // Récupération de l'utilisateur à partir de l'objet Authentication
+                Object principal = authentication.getPrincipal();
+                if (principal instanceof Jwt) {
+                    UserResponse userResponse = jwtService.getUser((Jwt) principal);
+                    return ResponseEntity.ok(userResponse);
+                } else {
+                    // Le principal n'est pas un objet Jwt
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+                }
             } else {
-                // le principal n'est pas un objet Jwt
+                // L'authentification est invalide ou l'utilisateur n'est pas authentifié
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
             }
-        } else {
-            // l'authentification est invalide ou l'utilisateur n'est pas authentifié
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        } catch (Exception e) {
+            e.printStackTrace(); // Vous pouvez gérer l'exception de manière appropriée ici
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
     @PostMapping(value = "/auth/login")
     public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequest loginRequest) {
-        User user = userService.login(loginRequest);
-        System.out.println(user.getEmail());
-        if (user != null) {
-            // Construire un objet Authentication à partir de l'ID de l'utilisateur
-            Authentication authentication = new UsernamePasswordAuthenticationToken(user.getName(),null );
-
-            String token = jwtService.generateToken(authentication, user);
-            return ResponseEntity.ok(Collections.singletonMap("token", token));
-
-        }else{
-            return ResponseEntity.ok(Collections.singletonMap("error", "error"));
+        try{
+            User user = userService.login(loginRequest);
+            if (user != null) {
+                // Construire un objet Authentication à partir de l'ID de l'utilisateur
+                Authentication authentication = new UsernamePasswordAuthenticationToken(user.getName(),null );
+                String token = jwtService.generateToken(authentication, user);
+                return ResponseEntity.ok(Collections.singletonMap("token", token));
+            }else{
+                return ResponseEntity.ok(Collections.singletonMap("error", "error"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("error", "An error occurred while processing your request"));
         }
+
     }
-
-
 
     @PostMapping("/auth/register")
     public ResponseEntity<Map<String, String>> register(@RequestBody RegisterRequest registerRequest){
-        return ResponseEntity.ok(Collections.singletonMap("error", "error"));
+        try {
+            User user = userService.register(registerRequest);
+            if (user != null) {
+                Authentication authentication = new UsernamePasswordAuthenticationToken(user.getName(),null );
+                String token = jwtService.generateToken(authentication, user);
+                return ResponseEntity.ok(Collections.singletonMap("token", token));
+
+            }else{
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("error", "Failed to register user"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("error", "An error occurred while processing your request"));
+        }
     }
 
 }

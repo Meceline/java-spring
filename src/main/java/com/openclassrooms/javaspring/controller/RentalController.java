@@ -4,8 +4,12 @@ import com.openclassrooms.javaspring.dto.*;
 import com.openclassrooms.javaspring.model.Rental;
 import com.openclassrooms.javaspring.model.User;
 import com.openclassrooms.javaspring.service.FileUpload;
+import com.openclassrooms.javaspring.service.JWTService;
 import com.openclassrooms.javaspring.service.RentalService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,10 +28,16 @@ public class RentalController {
     @Autowired
     private FileUpload fileUpload;
 
+    private JWTService jwtService;
+
     @GetMapping("/rental/{id}")
     public RentalResponse getRental(@PathVariable("id") final String id_string){
         long id = Long.parseLong(id_string);
-        Rental r = rentalService.getRental(id).get();
+        Rental r = rentalService.getRental(id).orElse(null);
+
+        if (r == null) {
+            return null;
+        }
 
         RentalResponse rentalResponse = new RentalResponse();
         rentalResponse.setId(r.getId());
@@ -36,7 +46,12 @@ public class RentalController {
         rentalResponse.setPrice(r.getPrice());
         rentalResponse.setPicture(r.getPicture());
         rentalResponse.setDescription(r.getDescription());
-        rentalResponse.setOwner_id(r.getOwner().getId());
+
+        // Vérifier si la location a un propriétaire avant de récupérer son ID
+        if (r.getOwner() != null) {
+            rentalResponse.setOwner_id(r.getOwner().getId());
+        }
+
         rentalResponse.setCreated_at(r.getCreated_at());
         rentalResponse.setUpdated_at(r.getUpdated_at());
 
@@ -55,7 +70,10 @@ public class RentalController {
              rentalResponse.setPrice(r.getPrice());
              rentalResponse.setPicture(r.getPicture());
              rentalResponse.setDescription(r.getDescription());
-             rentalResponse.setOwner_id(r.getOwner().getId());
+
+             if (r.getOwner() != null) {
+                 rentalResponse.setOwner_id(r.getOwner().getId());
+             }
              rentalResponse.setCreated_at(r.getCreated_at());
              rentalResponse.setUpdated_at(r.getUpdated_at());
              list.add(rentalResponse);
@@ -69,11 +87,23 @@ public class RentalController {
                                         @RequestParam("price") int price,
                                         @RequestParam("description") String description,
                                         @RequestParam("picture") MultipartFile picture) throws IOException {
-
+        System.out.println(name);
+//Transfert le fichier
         String pictureUrl = fileUpload.uploadFile(picture);
+//Récupère les info du user
+        UserResponse user = new UserResponse();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()) {
+            Object principal = authentication.getPrincipal();
+
+            if (principal instanceof Jwt) {
+                user = jwtService.getUser((Jwt) principal);
+            }
+        }
 
         User u = new User();
-        u.setId((long) 1);
+        u.setId(user.getId());
+    //Prépare le rental
         Rental rental = new Rental();
         rental.setName(name);
         rental.setSurface(surface);
@@ -82,12 +112,12 @@ public class RentalController {
         rental.setCreated_at(new Date());
         rental.setUpdated_at(new Date());
         rental.setOwner(u);
+
         rental.setPicture(pictureUrl);
 
         rentalService.createRental(rental);
         MessageResponse response = new MessageResponse();
         response.setMessage("Rental created !");
-
 
         return response;
     }

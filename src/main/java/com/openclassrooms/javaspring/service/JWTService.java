@@ -1,12 +1,10 @@
 package com.openclassrooms.javaspring.service;
 
+import com.openclassrooms.javaspring.dto.UserResponse;
 import com.openclassrooms.javaspring.model.User;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
-import org.springframework.security.oauth2.jwt.JwsHeader;
-import org.springframework.security.oauth2.jwt.JwtClaimsSet;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
 
 
@@ -48,5 +46,33 @@ public class JWTService {
                 .build();
         JwtEncoderParameters jwtEncoderParameters = JwtEncoderParameters.from(JwsHeader.with(MacAlgorithm.HS256).build(), claims);
         return this.jwtEncoder.encode(jwtEncoderParameters).getTokenValue();
+    }
+
+    public UserResponse getUser(Jwt principal){
+        Jwt jwt = (Jwt) principal;
+
+        System.out.println(((Jwt) principal).getClaims());
+        System.out.println(jwt);
+
+        // extraction des claims de l'utilisateur depuis le token JWT
+        Long id = jwt.getClaim("id");
+        String email = jwt.getClaim("email");
+        String name = jwt.getClaim("name");
+        Long createdAtTimestamp = jwt.getClaim("created_at");
+        Long updatedAtTimestamp = jwt.getClaim("updated_at");
+
+        // Convertir les timestamps en objets Date
+        Date createdAt = new Date(createdAtTimestamp);
+        Date updatedAt = new Date(updatedAtTimestamp);
+
+        // Création de UserResponse
+        UserResponse user = new UserResponse();
+        user.setId(id);
+        user.setEmail(email);
+        user.setName(name);
+        user.setCreated_at(createdAt);
+        user.setUpdated_at(updatedAt);
+
+        return user;
     }
 }

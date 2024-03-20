@@ -15,7 +15,6 @@ public class MessageService {
     @Autowired
     private MessageRepository messageRepository;
 
-
     public void createMessage(Message message) {
         messageRepository.save(message);
     }
