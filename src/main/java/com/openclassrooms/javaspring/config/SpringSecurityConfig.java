@@ -42,10 +42,7 @@ public class SpringSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/register",
                                 "/api/auth/login",
-                                "/v2/api-docs",
-                                "/configuration/**",
                                 "/swagger*/**",
-                                "/webjars/**",
                                 "/v3/api-docs",
                                 "/v3/api-docs/swagger-config").permitAll()
                         .anyRequest().authenticated())
@@ -68,8 +65,6 @@ public class SpringSecurityConfig {
     public JwtEncoder jwtEncoder() {
         return new NimbusJwtEncoder(new ImmutableSecret<>(this.jwtKey.getBytes()));
     }
-
-
-
+    
 }
 

@@ -32,13 +32,21 @@ public class UserService {
     }
 
       public User login(LoginRequest loginRequest) {
-          String password = passwordEncoder.encode(loginRequest.getPassword());
-          User user = userRepository.findUserByEmailAndPassword(loginRequest.getEmail(), loginRequest.getPassword());
-          return user;
-      }
+          String p = loginRequest.getPassword();
+          String password = passwordEncoder.encode(p);
+          User user = userRepository.findByEmail(loginRequest.getEmail());
+          if(user != null){
+              if(passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())){
+                  return user;
+              }
+          }
+          return null;
+    }
 
       public User register(RegisterRequest registerRequest){
-          String password = passwordEncoder.encode(registerRequest.getPassword());
+        String p = registerRequest.getPassword();
+          String password = passwordEncoder.encode(p);
+          System.out.println(password);
           User user = new User();
           user.setEmail(registerRequest.getEmail());
           user.setName(registerRequest.getName());

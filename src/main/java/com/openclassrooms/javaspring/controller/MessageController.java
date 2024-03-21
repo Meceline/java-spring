@@ -10,12 +10,16 @@ import com.openclassrooms.javaspring.repository.UserRepository;
 import com.openclassrooms.javaspring.service.MessageService;
 import com.openclassrooms.javaspring.service.RentalService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collections;
 import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 
 
@@ -30,27 +34,19 @@ private RentalRepository rentalRepository;
 @Autowired
 public UserRepository userRepository;
 
-    @PostMapping("/message")
-    public MessageResponse createMessage(@RequestBody MessageRequest messageRequest) {
-        //créer une methode convert dans le dto
-        Message message = new Message();
-        message.setMessage(messageRequest.getMessage());
+    @PostMapping("/messages")
+    public ResponseEntity<Map<String, String>> createMessage(@RequestBody MessageRequest messageRequest) throws Exception {
+        try{
+            messageService.createMessage(messageRequest);
 
-        Rental rental = rentalRepository.findById(messageRequest.getRental_id()).get();
-        message.setRental(rental);
-        Optional<User> userOptional = userRepository.findById(messageRequest.getUser_id());
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            message.setUser(user);
+            /*MessageResponse response = new MessageResponse();
+            response.setMessage("Message send with success");*/
+            return ResponseEntity.ok(Collections.singletonMap("message", "Message send with success"));
+        }catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("error", "An error occurred while processing your request"));
         }
-        message.setCreated_at(new Date());
-        message.setUpdated_at(new Date());
 
-        messageService.createMessage(message);
-
-        MessageResponse response = new MessageResponse();
-        response.setMessage("Message send with success");
-        return response;
     }
 }
 

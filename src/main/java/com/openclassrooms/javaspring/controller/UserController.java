@@ -94,15 +94,17 @@ public class UserController {
 
     @PostMapping(value = "/auth/login")
     public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequest loginRequest) {
+        System.out.println(loginRequest.getEmail() + " - "  +loginRequest.getPassword());
+
+        User user = userService.login(loginRequest);
         try{
-            User user = userService.login(loginRequest);
             if (user != null) {
                 // Construire un objet Authentication à partir de l'ID de l'utilisateur
                 Authentication authentication = new UsernamePasswordAuthenticationToken(user.getName(),null );
                 String token = jwtService.generateToken(authentication, user);
                 return ResponseEntity.ok(Collections.singletonMap("token", token));
             }else{
-                return ResponseEntity.ok(Collections.singletonMap("error", "error"));
+                return ResponseEntity.ok(Collections.singletonMap("error", "Authentication failed"));
             }
         } catch (Exception e) {
             e.printStackTrace();

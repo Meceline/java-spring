@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "fr.bla.security")
 public class SecurityProperties {
+//pour mettre des var dans application.properties, sert pour injection
+    //a comment et test
 
     private String jwtKey;
     private String algorithm;

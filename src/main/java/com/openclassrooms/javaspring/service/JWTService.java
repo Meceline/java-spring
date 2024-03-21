@@ -51,9 +51,6 @@ public class JWTService {
     public UserResponse getUser(Jwt principal){
         Jwt jwt = (Jwt) principal;
 
-        System.out.println(((Jwt) principal).getClaims());
-        System.out.println(jwt);
-
         // extraction des claims de l'utilisateur depuis le token JWT
         Long id = jwt.getClaim("id");
         String email = jwt.getClaim("email");
