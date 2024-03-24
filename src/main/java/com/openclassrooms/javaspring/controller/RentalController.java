@@ -3,6 +3,7 @@ package com.openclassrooms.javaspring.controller;
 import com.openclassrooms.javaspring.dto.*;
 import com.openclassrooms.javaspring.model.Rental;
 import com.openclassrooms.javaspring.model.User;
+import com.openclassrooms.javaspring.repository.UserRepository;
 import com.openclassrooms.javaspring.service.FileUpload;
 import com.openclassrooms.javaspring.service.JWTService;
 import com.openclassrooms.javaspring.service.RentalService;
@@ -35,60 +36,30 @@ public class RentalController {
     private JWTService jwtService;
 
     @GetMapping("/rentals/{id}")
-    public ResponseEntity<RentalResponse> getRental(@PathVariable("id") final String id_string){
-        long id = Long.parseLong(id_string);
+    public ResponseEntity<?> getRental(@PathVariable("id") final String id_string){
         try{
-            Rental r = rentalService.getRental(id).orElse(null);
+            long id = Long.parseLong(id_string);
+            Rental rental = rentalService.getRental(id).orElse(null);
 
-            if (r == null) {
-                return null;
+            if (rental == null) {
+                return ResponseEntity.notFound().build();
             }
-
-            RentalResponse rentalResponse = new RentalResponse();
-            rentalResponse.setId(r.getId());
-            rentalResponse.setName(r.getName());
-            rentalResponse.setSurface(r.getSurface());
-            rentalResponse.setPrice(r.getPrice());
-            rentalResponse.setPicture(r.getPicture());
-            rentalResponse.setDescription(r.getDescription());
-
-            // Vérifier si la location a un propriétaire avant de récupérer son ID
-            if (r.getOwner() != null) {
-                rentalResponse.setOwner_id(r.getOwner().getId());
-            }
-
-            rentalResponse.setCreated_at(r.getCreated_at());
-            rentalResponse.setUpdated_at(r.getUpdated_at());
-
-            return ResponseEntity.ok(rentalResponse);
+            return ResponseEntity.ok(convertRentalToRentalResponse(rental));
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body("Invalid rental ID format");
         } catch (Exception e) {
-            RentalResponse errorResponse = new RentalResponse();
-            errorResponse.setName("An error occurred while processing your request");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+            return handleErrorResponse(e);
         }
     }
 
     @GetMapping("/rentals")
-    public ResponseEntity<Map<String, List<RentalResponse>>> getRentals() {
+    public ResponseEntity<?> getRentals() {
         try {
             Iterable<Rental> rentals = rentalService.getRentals();
             List<RentalResponse> list = new ArrayList<>();
 
-            for (Rental r : rentals) {
-                RentalResponse rentalResponse = new RentalResponse();
-                rentalResponse.setId(r.getId());
-                rentalResponse.setName(r.getName());
-                rentalResponse.setSurface(r.getSurface());
-                rentalResponse.setPrice(r.getPrice());
-                rentalResponse.setPicture(r.getPicture());
-                rentalResponse.setDescription(r.getDescription());
-
-                if (r.getOwner() != null) {
-                    rentalResponse.setOwner_id(r.getOwner().getId());
-                }
-                rentalResponse.setCreated_at(r.getCreated_at());
-                rentalResponse.setUpdated_at(r.getUpdated_at());
-                list.add(rentalResponse);
+            for (Rental rental : rentals) {
+                list.add(convertRentalToRentalResponse(rental));
             }
 
             Map<String, List<RentalResponse>> responseBody = new HashMap<>();
@@ -96,39 +67,31 @@ public class RentalController {
 
             return ResponseEntity.ok(responseBody);
         } catch (Exception e) {
-            RentalResponse errorResponse = new RentalResponse();
-            errorResponse.setName("An error occurred while processing your request");
-            Map<String, List<RentalResponse>> responseBody = new HashMap<>();
-            responseBody.put("error", Collections.singletonList(errorResponse));
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseBody);
+            return handleErrorResponse(e);
         }
     }
 
-
     @PostMapping("/rentals")
-    public ResponseEntity<Map<String, String>> createRental(@RequestParam("name") String name,
-                                        @RequestParam("surface") int surface,
-                                        @RequestParam("price") int price,
-                                        @RequestParam("description") String description,
-                                        @RequestParam("picture") MultipartFile picture) throws IOException {
-
+    public ResponseEntity<?> createRental(@RequestParam("name") String name,
+                                          @RequestParam("surface") int surface,
+                                          @RequestParam("price") int price,
+                                          @RequestParam("description") String description,
+                                          @RequestParam("picture") MultipartFile picture) {
         try {
-    //Transfert le fichier
-            String pictureUrl = fileUpload.uploadFile(picture);
-    //Récupère les info du user
-            UserResponse user = new UserResponse();
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication != null && authentication.isAuthenticated()) {
-                Object principal = authentication.getPrincipal();
-
-                if (principal instanceof Jwt) {
-                    user = jwtService.getUser((Jwt) principal);
-                }
+            // Validation des champs requis
+            if (name.isEmpty() || surface <= 0  ||price <= 0 || description.isEmpty()) {
+                return ResponseEntity.badRequest().body("Name, surface, price and description are required fields");
             }
 
+            // Gestion de l'authentification
+            UserResponse user = getUserFromToken();
             User u = new User();
             u.setId(user.getId());
-        //Prépare le rental
+
+            // Transfert du fichier
+            String pictureUrl = fileUpload.uploadFile(picture);
+
+            // Préparation du rental
             Rental rental = new Rental();
             rental.setName(name);
             rental.setSurface(surface);
@@ -141,28 +104,36 @@ public class RentalController {
 
             rentalService.createRental(rental);
 
-            return ResponseEntity.ok(Collections.singletonMap("message", "Rental created !"));
+            return ResponseEntity.ok(Collections.singletonMap("message", "Rental created!"));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error uploading picture");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("error", "An error occurred while processing your request"));
-
+            return handleErrorResponse(e);
         }
     }
 
     @PutMapping("/rentals/{id}")
-    public ResponseEntity<Map<String, String>> updateRental(@PathVariable("id") final String id_string,
+    public ResponseEntity<?> updateRental(@PathVariable("id") final String id_string,
                                                             @RequestParam("name") String name,
                                                             @RequestParam("surface") int surface,
                                                             @RequestParam("price") int price,
                                                             @RequestParam("description") String description) {
         try{
             long id = Long.parseLong(id_string);
-            Optional<Rental> r = rentalService.getRental(id);
+            Optional<Rental> rentalOptional = rentalService.getRental(id);
 
-            Rental rental = r.get();
-            User owner = rental.getOwner();
+            if (!rentalOptional.isPresent()) {
+                return ResponseEntity.notFound().build();
+            }
 
-            User user = userService.getUserById(owner.getId());
+            Rental rental = rentalOptional.get();
 
+            // Validation des champs requis
+            if (name.isEmpty() || surface <= 0  ||price <= 0 || description.isEmpty()) {
+                return ResponseEntity.badRequest().body("Name, surface, price and description are required fields");
+            }
+
+            // Mise à jour des informations
             rental.setName(name);
             rental.setSurface(surface);
             rental.setPrice(price);
@@ -171,9 +142,54 @@ public class RentalController {
 
             rentalService.updateRental(rental);
 
-            return ResponseEntity.ok(Collections.singletonMap("message", "Rental updated !"));
-        }catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("error", "An error occurred while processing your request"));
+            return ResponseEntity.ok(Collections.singletonMap("message", "Rental updated!"));
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body("Invalid rental ID format");
+        } catch (Exception e) {
+            return handleErrorResponse(e);
         }
+
     }
+
+
+
+
+    private RentalResponse convertRentalToRentalResponse(Rental rental) {
+        RentalResponse rentalResponse = new RentalResponse();
+        rentalResponse.setId(rental.getId());
+        rentalResponse.setName(rental.getName());
+        rentalResponse.setSurface(rental.getSurface());
+        rentalResponse.setPrice(rental.getPrice());
+        rentalResponse.setPicture(rental.getPicture());
+        rentalResponse.setDescription(rental.getDescription());
+
+        if (rental.getOwner() != null) {
+            rentalResponse.setOwner_id(rental.getOwner().getId());
+        }
+
+        rentalResponse.setCreated_at(rental.getCreated_at());
+        rentalResponse.setUpdated_at(rental.getUpdated_at());
+
+        return rentalResponse;
+    }
+
+    private UserResponse getUserFromToken() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()) {
+            Object principal = authentication.getPrincipal();
+
+            if (principal instanceof Jwt) {
+                return jwtService.getUser((Jwt) principal);
+            }
+        }
+        return new UserResponse();
+    }
+
+    private ResponseEntity<?> handleErrorResponse(Exception e) {
+        RentalResponse errorResponse = new RentalResponse();
+        errorResponse.setName("An error occurred while processing your rentals request");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+
+
 }

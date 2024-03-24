@@ -26,6 +26,8 @@ public class User {
     private Date created_at;
 
     private Date updated_at;
+
+
     //@OneToMany(mappedBy="owner")
     // private List<Rental> rentals = new ArrayList<Rental>();
 

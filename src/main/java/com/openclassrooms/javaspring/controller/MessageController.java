@@ -38,9 +38,14 @@ public class MessageController {
             messageService.createMessage(messageRequest);
             return ResponseEntity.ok(Collections.singletonMap("message", "Message send with success"));
         }catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("error", "An error occurred while processing your request"));
+            return handleServerError();
         }
 
+    }
+
+    private ResponseEntity<Map<String, String>> handleServerError() {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Collections.singletonMap("error", "An error occurred while processing your message request"));
     }
 }
 
