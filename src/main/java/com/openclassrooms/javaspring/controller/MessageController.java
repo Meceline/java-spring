@@ -28,22 +28,16 @@ import java.util.Optional;
 public class MessageController {
     @Autowired
     private MessageService messageService;
-@Autowired
-private RentalRepository rentalRepository;
 
-@Autowired
-public UserRepository userRepository;
+    @Autowired
+    public UserRepository userRepository;
 
     @PostMapping("/messages")
     public ResponseEntity<Map<String, String>> createMessage(@RequestBody MessageRequest messageRequest) throws Exception {
         try{
             messageService.createMessage(messageRequest);
-
-            /*MessageResponse response = new MessageResponse();
-            response.setMessage("Message send with success");*/
             return ResponseEntity.ok(Collections.singletonMap("message", "Message send with success"));
         }catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("error", "An error occurred while processing your request"));
         }
 

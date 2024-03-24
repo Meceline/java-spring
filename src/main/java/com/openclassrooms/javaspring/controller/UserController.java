@@ -61,22 +61,27 @@ public class UserController {
             // id n'est pas un nombre valide
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
     @GetMapping("/auth/me")
     public ResponseEntity<UserResponse> getUser() {
+        System.out.println("/me");
         try {
             // Obtenir l'objet Authentication du contexte de sécurité
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            System.out.println("/me" + authentication);
             // Authentification valide et utilisateur authentifié
             if (authentication != null && authentication.isAuthenticated()) {
                 // Récupération de l'utilisateur à partir de l'objet Authentication
                 Object principal = authentication.getPrincipal();
+                System.out.println("/me" + principal);
                 if (principal instanceof Jwt) {
                     UserResponse userResponse = jwtService.getUser((Jwt) principal);
+
+
+                    System.out.println(userResponse.getName() + " / me");
                     return ResponseEntity.ok(userResponse);
                 } else {
                     // Le principal n'est pas un objet Jwt
@@ -87,15 +92,12 @@ public class UserController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
             }
         } catch (Exception e) {
-            e.printStackTrace(); // Vous pouvez gérer l'exception de manière appropriée ici
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
     @PostMapping(value = "/auth/login")
     public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequest loginRequest) {
-        System.out.println(loginRequest.getEmail() + " - "  +loginRequest.getPassword());
-
         User user = userService.login(loginRequest);
         try{
             if (user != null) {
@@ -107,7 +109,6 @@ public class UserController {
                 return ResponseEntity.ok(Collections.singletonMap("error", "Authentication failed"));
             }
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("error", "An error occurred while processing your request"));
         }
 
@@ -117,9 +118,11 @@ public class UserController {
     public ResponseEntity<Map<String, String>> register(@RequestBody RegisterRequest registerRequest){
         try {
             User user = userService.register(registerRequest);
+            System.out.println(user.getName() + " / register");
             if (user != null) {
                 Authentication authentication = new UsernamePasswordAuthenticationToken(user.getName(),null );
                 String token = jwtService.generateToken(authentication, user);
+                System.out.println(token + " / register");
                 return ResponseEntity.ok(Collections.singletonMap("token", token));
 
             }else{

@@ -64,8 +64,7 @@ public class RentalController {
         } catch (Exception e) {
             RentalResponse errorResponse = new RentalResponse();
             errorResponse.setName("An error occurred while processing your request");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(errorResponse);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 
@@ -101,20 +100,18 @@ public class RentalController {
             errorResponse.setName("An error occurred while processing your request");
             Map<String, List<RentalResponse>> responseBody = new HashMap<>();
             responseBody.put("error", Collections.singletonList(errorResponse));
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(responseBody);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseBody);
         }
     }
 
 
     @PostMapping("/rentals")
-    public MessageResponse createRental(@RequestParam("name") String name,
+    public ResponseEntity<Map<String, String>> createRental(@RequestParam("name") String name,
                                         @RequestParam("surface") int surface,
                                         @RequestParam("price") int price,
                                         @RequestParam("description") String description,
                                         @RequestParam("picture") MultipartFile picture) throws IOException {
 
-            System.out.println(name);
         try {
     //Transfert le fichier
             String pictureUrl = fileUpload.uploadFile(picture);
@@ -143,12 +140,12 @@ public class RentalController {
             rental.setPicture(pictureUrl);
 
             rentalService.createRental(rental);
+
+            return ResponseEntity.ok(Collections.singletonMap("message", "Rental created !"));
         } catch (Exception e) {
-            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("error", "An error occurred while processing your request"));
+
         }
-        MessageResponse response = new MessageResponse();
-        response.setMessage("Rental created !");
-        return response;
     }
 
     @PutMapping("/rentals/{id}")
@@ -176,7 +173,6 @@ public class RentalController {
 
             return ResponseEntity.ok(Collections.singletonMap("message", "Rental updated !"));
         }catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("error", "An error occurred while processing your request"));
         }
     }

@@ -28,7 +28,9 @@ public class UserService {
     }
 
     public User getUserById(Long id){
-        return userRepository.findById(id).get();
+        System.out.println(id + "service");
+        User u =userRepository.findById(id).get();
+        return u;
     }
 
       public User login(LoginRequest loginRequest) {

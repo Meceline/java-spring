@@ -7,12 +7,6 @@ import com.openclassrooms.javaspring.model.User;
 @Repository
 public interface UserRepository extends CrudRepository<User, Long> {
 
-
-    User findUserByEmailAndPassword(String email, String password);
-
-
-    User findByEmailAndPassword(String email, String password);
-
     User findByEmail(String email);
 
 }
