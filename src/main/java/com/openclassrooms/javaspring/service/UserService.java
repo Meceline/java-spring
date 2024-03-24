@@ -27,9 +27,8 @@ public class UserService {
     }
 
     public User getUserById(Long id){
-        System.out.println(id + "service");
-        User u =userRepository.findById(id).get();
-        return u;
+        User user =userRepository.findById(id).get();
+        return user;
     }
 
       public User login(LoginRequest loginRequest) {
@@ -47,7 +46,6 @@ public class UserService {
       public User register(RegisterRequest registerRequest){
         String p = registerRequest.getPassword();
           String password = passwordEncoder.encode(p);
-          System.out.println(password);
           User user = new User();
           user.setEmail(registerRequest.getEmail());
           user.setName(registerRequest.getName());

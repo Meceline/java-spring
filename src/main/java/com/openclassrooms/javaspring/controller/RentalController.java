@@ -3,7 +3,6 @@ package com.openclassrooms.javaspring.controller;
 import com.openclassrooms.javaspring.dto.*;
 import com.openclassrooms.javaspring.model.Rental;
 import com.openclassrooms.javaspring.model.User;
-import com.openclassrooms.javaspring.repository.UserRepository;
 import com.openclassrooms.javaspring.service.FileUpload;
 import com.openclassrooms.javaspring.service.JWTService;
 import com.openclassrooms.javaspring.service.RentalService;
@@ -78,33 +77,15 @@ public class RentalController {
                                           @RequestParam("description") String description,
                                           @RequestParam("picture") MultipartFile picture) {
         try {
-            // Validation des champs requis
-            if (name.isEmpty() || surface <= 0  ||price <= 0 || description.isEmpty()) {
-                return ResponseEntity.badRequest().body("Name, surface, price and description are required fields");
-            }
-
             // Gestion de l'authentification
             UserResponse user = getUserFromToken();
-            User u = new User();
-            u.setId(user.getId());
 
-            // Transfert du fichier
-            String pictureUrl = fileUpload.uploadFile(picture);
-
-            // Préparation du rental
-            Rental rental = new Rental();
-            rental.setName(name);
-            rental.setSurface(surface);
-            rental.setPrice(price);
-            rental.setDescription(description);
-            rental.setCreated_at(new Date());
-            rental.setUpdated_at(new Date());
-            rental.setOwner(u);
-            rental.setPicture(pictureUrl);
-
-            rentalService.createRental(rental);
+            // Appel de la méthode du service pour créer la location
+            rentalService.createRental(name, surface, price, description, picture, user);
 
             return ResponseEntity.ok(Collections.singletonMap("message", "Rental created!"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error uploading picture");
         } catch (Exception e) {
@@ -114,41 +95,24 @@ public class RentalController {
 
     @PutMapping("/rentals/{id}")
     public ResponseEntity<?> updateRental(@PathVariable("id") final String id_string,
-                                                            @RequestParam("name") String name,
-                                                            @RequestParam("surface") int surface,
-                                                            @RequestParam("price") int price,
-                                                            @RequestParam("description") String description) {
-        try{
+                                          @RequestParam("name") String name,
+                                          @RequestParam("surface") int surface,
+                                          @RequestParam("price") int price,
+                                          @RequestParam("description") String description) {
+        try {
             long id = Long.parseLong(id_string);
-            Optional<Rental> rentalOptional = rentalService.getRental(id);
 
-            if (!rentalOptional.isPresent()) {
-                return ResponseEntity.notFound().build();
-            }
-
-            Rental rental = rentalOptional.get();
-
-            // Validation des champs requis
-            if (name.isEmpty() || surface <= 0  ||price <= 0 || description.isEmpty()) {
-                return ResponseEntity.badRequest().body("Name, surface, price and description are required fields");
-            }
-
-            // Mise à jour des informations
-            rental.setName(name);
-            rental.setSurface(surface);
-            rental.setPrice(price);
-            rental.setDescription(description);
-            rental.setUpdated_at(new Date());
-
-            rentalService.updateRental(rental);
+            // mise à jour de la location
+            rentalService.updateRental(id, name, surface, price, description);
 
             return ResponseEntity.ok(Collections.singletonMap("message", "Rental updated!"));
         } catch (NumberFormatException e) {
             return ResponseEntity.badRequest().body("Invalid rental ID format");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return handleErrorResponse(e);
         }
-
     }
 
 
