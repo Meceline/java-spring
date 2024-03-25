@@ -27,11 +27,6 @@ public class User {
 
     private Date updated_at;
 
-
-    //@OneToMany(mappedBy="owner")
-    // private List<Rental> rentals = new ArrayList<Rental>();
-
-
     public Long getId() {
         return id;
     }

@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.authentication.AuthenticationManager;
 
 import java.util.Collections;
 import java.util.Map;

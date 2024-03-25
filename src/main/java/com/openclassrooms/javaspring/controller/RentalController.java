@@ -26,9 +26,6 @@ public class RentalController {
     private RentalService rentalService;
 
     @Autowired
-    private FileUpload fileUpload;
-
-    @Autowired
     public UserService userService;
 
     @Autowired

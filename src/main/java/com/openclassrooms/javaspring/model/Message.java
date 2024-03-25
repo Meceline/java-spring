@@ -18,12 +18,10 @@ public class Message {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    //1 rental peut avoir +eurs comments
     @ManyToOne
     @JoinColumn(name="rental_id")
     private Rental rental;
 
-    //1 user peut laisser +eurs comments
     @ManyToOne
     @JoinColumn(name="user_id")
     private User user;
@@ -33,7 +31,6 @@ public class Message {
     private Date created_at;
 
     private Date updated_at;
-
 
 
     public Rental getRental() {
