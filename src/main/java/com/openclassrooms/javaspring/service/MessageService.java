@@ -27,7 +27,7 @@ public class MessageService {
     public UserRepository userRepository;
 
     public void createMessage(MessageRequest messageRequest) throws Exception {
-        //convertir messageRequest en message
+       
         Message message = new Message();
         message.setMessage(messageRequest.getMessage());
 

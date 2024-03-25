@@ -31,7 +31,7 @@ public class UserService {
         return user;
     }
 
-      public User login(LoginRequest loginRequest) {
+    public User login(LoginRequest loginRequest) {
           String p = loginRequest.getPassword();
           String password = passwordEncoder.encode(p);
           User user = userRepository.findByEmail(loginRequest.getEmail());

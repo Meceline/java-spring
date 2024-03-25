@@ -32,7 +32,6 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    private AuthenticationManager authenticationManager;
     private JWTService jwtService;
 
     public UserController(UserService userService, JWTService jwtService) {

@@ -4,7 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConfigurationProperties(prefix = "fr.bla.security")
+@ConfigurationProperties(prefix = "fr.celine.security")
 public class SecurityProperties {
 //pour mettre des var dans application.properties, sert pour injection
     //a comment et test

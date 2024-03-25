@@ -80,7 +80,6 @@ public class RentalController {
             // Gestion de l'authentification
             UserResponse user = getUserFromToken();
 
-            // Appel de la méthode du service pour créer la location
             rentalService.createRental(name, surface, price, description, picture, user);
 
             return ResponseEntity.ok(Collections.singletonMap("message", "Rental created!"));
@@ -114,9 +113,6 @@ public class RentalController {
             return handleErrorResponse(e);
         }
     }
-
-
-
 
     private RentalResponse convertRentalToRentalResponse(Rental rental) {
         RentalResponse rentalResponse = new RentalResponse();

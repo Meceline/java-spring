@@ -15,15 +15,12 @@ import java.time.temporal.ChronoUnit;
 
 @Service
 public class JWTService {
-
     private JwtEncoder jwtEncoder;
-
     public JWTService(JwtEncoder jwtEncoder) {
         this.jwtEncoder = jwtEncoder;
     }
-
-@Autowired
-private UserService userService;
+    @Autowired
+    private UserService userService;
 
     public String generateToken(Authentication authentication, User user) {
         Instant now = Instant.now();
