@@ -2,7 +2,6 @@ package com.openclassrooms.javaspring.service;
 
 import com.openclassrooms.javaspring.dto.LoginRequest;
 import com.openclassrooms.javaspring.dto.RegisterRequest;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;

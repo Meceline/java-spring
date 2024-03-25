@@ -2,8 +2,6 @@ package com.openclassrooms.javaspring.controller;
 
 import com.openclassrooms.javaspring.dto.*;
 import com.openclassrooms.javaspring.model.Rental;
-import com.openclassrooms.javaspring.model.User;
-import com.openclassrooms.javaspring.service.FileUpload;
 import com.openclassrooms.javaspring.service.JWTService;
 import com.openclassrooms.javaspring.service.RentalService;
 import com.openclassrooms.javaspring.service.UserService;
